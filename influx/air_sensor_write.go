@@ -18,7 +18,7 @@ func NewAirSensorWriter(
 ) domain.AirSensorWriter {
 	return &airSensorWriter{
 		cli:  cli,
-		meas: "airSensors",
+		meas: meas,
 	}
 }
 

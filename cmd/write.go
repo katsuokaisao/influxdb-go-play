@@ -24,7 +24,7 @@ var writeCmd = &cobra.Command{
 		client := influxdb2.NewClient(url, token)
 
 		w := client.WriteAPI(org, bucket)
-		asw := influx.NewAirSensorWriter(w, "airSensors")
+		asw := influx.NewAirSensorWriter(w, "home")
 
 		file, err := os.Open("data.txt")
 		if err != nil {

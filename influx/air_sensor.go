@@ -2,6 +2,7 @@ package influx
 
 import (
 	"context"
+	"fmt"
 
 	"github.com/influxdata/influxdb-client-go/v2/api"
 	"github.com/katsuokaisao/influxdb-play/domain"
@@ -29,7 +30,7 @@ func (e *airSensorReader) CheckThreshold10MinutesAgo(ctx context.Context) (*api.
 	return e.checkThreshold(ctx, "-10m")
 }
 
-func (e *airSensorReader) checkThreshold(ctx context.Context, duration string) (*api.QueryTableResult, error) {
+func (e *airSensorReader) checkThreshold(ctx context.Context, start string) (*api.QueryTableResult, error) {
 	defaultThreshold := domain.DefaultAirSensorThreshold()
 	params := struct {
 		Bucket         string  `json:"bucket"`
@@ -43,23 +44,24 @@ func (e *airSensorReader) checkThreshold(ctx context.Context, duration string) (
 	}{
 		Bucket:         e.bucket,
 		Meas:           e.meas,
-		Start:          duration,
+		Start:          start,
 		TemperatureMax: defaultThreshold.TemperatureMax,
 		TemperatureMin: defaultThreshold.TemperatureMin,
 		HumidityMax:    defaultThreshold.HumidityMax,
 		HumidityMin:    defaultThreshold.HumidityMin,
 		Co2Max:         defaultThreshold.Co2Max,
 	}
-	query := `
-		from(bucket: params.bucket)
-			|> range(start: params.start)
-			|> filter(fn: (r) => r._measurement == params.meas)
+	query := fmt.Sprintf(`
+		from(bucket: "%s")
+			|> range(start: %s)
+			|> filter(fn: (r) => r._measurement == "%s")
 			|> filter(fn: (r) => r._field == "temp" or r._field == "hum" or r._field == "co2")
-			|> filter(fn: (r) => (r._field == "temp" and (r._value < params.temperature_min or r._value > params.temperature_max)) or
-								(r._field == "hum" and (r._value < params.humidity_min or r._value > params.humidity_max)) or
-								(r._field == "co2" and r._value > params.co2_max))
+			|> filter(fn: (r) => (r._field == "temp" and (r._value < %f or r._value > %f)) or
+								(r._field == "hum" and (r._value < %f or r._value > %f)) or
+								(r._field == "co2" and r._value > %f))
 			|> yield(name: "exceeded_thresholds")
-	`
+	`, params.Bucket, params.Start, params.Meas, params.TemperatureMin, params.TemperatureMax, params.HumidityMin, params.HumidityMax, params.Co2Max)
+	fmt.Printf("query: %s\n", query)
 
 	return e.cli.QueryWithParams(ctx, query, params)
 }

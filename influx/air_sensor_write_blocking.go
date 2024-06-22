@@ -20,7 +20,7 @@ func NewAirSensorWriterBlocking(
 ) domain.AirSensorWriterBlocking {
 	return &airSensorWriterBlocking{
 		cli:  cli,
-		meas: "home",
+		meas: meas,
 	}
 }
 
