@@ -11,9 +11,9 @@ import (
 	"github.com/spf13/cobra"
 )
 
-var readCmd = &cobra.Command{
-	Use:   "read",
-	Short: "Read data from InfluxDB",
+var checkThreshold10MinutesAgoCmd = &cobra.Command{
+	Use:   "CheckThreshold10MinutesAgo",
+	Short: "Check the threshold 10 minutes ago",
 	Run: func(cmd *cobra.Command, args []string) {
 		bucket := "get-started"
 		org := "example-org"
