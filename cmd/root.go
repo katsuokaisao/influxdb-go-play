@@ -12,6 +12,7 @@ func init() {
 	rootCmd.AddCommand(writeCmd)
 	rootCmd.AddCommand(writeBlockCmd)
 	rootCmd.AddCommand(checkThreshold10MinutesAgoCmd)
+	rootCmd.AddCommand(get3HourAgoDataPointsCmd)
 
 	writeCmd.PersistentFlags().StringVarP(&fileName, "file", "f", "", "write data from this file")
 	writeBlockCmd.PersistentFlags().StringVarP(&fileName, "file", "f", "", "write data from this file")
