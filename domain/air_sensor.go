@@ -196,6 +196,7 @@ type AirSensorReader interface {
 }
 
 type AirSensorDeleter interface {
+	DeleteRecords(ctx context.Context, start time.Time, end time.Time) error
 }
 
 type AirSensorTask interface {
