@@ -176,13 +176,14 @@ func (e *airSensorReader) getDataPoints(ctx context.Context, duration string) (*
 		Meas:   e.meas,
 		Start:  duration,
 	}
-	query := `
-		from(bucket: params.bucket)
-			|> range(start: params.start)
-			|> filter(fn: (r) => r._measurement == params.meas)
-	`
 
-	return e.cli.QueryWithParams(ctx, query, params)
+	query := fmt.Sprintf(`
+		from(bucket: "%s")
+			|> range(start: %s)
+			|> filter(fn: (r) => r._measurement == "%s")
+	`, params.Bucket, params.Start, params.Meas)
+
+	return e.cli.Query(ctx, query)
 }
 
 func (e *airSensorReader) GetDailyAggregates(ctx context.Context) (*api.QueryTableResult, error) {
@@ -193,12 +194,13 @@ func (e *airSensorReader) GetDailyAggregates(ctx context.Context) (*api.QueryTab
 		Bucket: e.bucket,
 		Meas:   e.meas,
 	}
-	query := `
-		from(bucket: params.bucket)
-			|> range(start: -1d)
-			|> filter(fn: (r) => r._measurement == params.meas)
-			|> aggregateWindow(every: 1d, fn: mean, createEmpty: false)
-	`
 
-	return e.cli.QueryWithParams(ctx, query, params)
+	query := fmt.Sprintf(`
+		from(bucket: "%s")
+			|> range(start: -1d)
+			|> filter(fn: (r) => r._measurement == "%s")
+			|> aggregateWindow(every: 1d, fn: mean, createEmpty: false)
+	`, params.Bucket, params.Meas)
+
+	return e.cli.Query(ctx, query)
 }
