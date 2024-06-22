@@ -3,6 +3,7 @@ package influx
 import (
 	"context"
 	"fmt"
+	"sort"
 
 	"github.com/influxdata/influxdb-client-go/v2/api"
 	"github.com/katsuokaisao/influxdb-play/domain"
@@ -27,18 +28,18 @@ func NewAirSensorReader(
 }
 
 func (e *airSensorReader) CheckThreshold10MinutesAgo(ctx context.Context) (
-	map[domain.TemperatureMeta]domain.TemperatureOver,
-	map[domain.HumidityMeta]domain.HumidityOver,
-	map[domain.CarbonDioxideOver]domain.CarbonDioxideOver,
+	[]domain.TemperatureOver,
+	[]domain.HumidityOver,
+	[]domain.CarbonDioxideOver,
 	error,
 ) {
 	return e.checkThreshold(ctx, "-10m")
 }
 
 func (e *airSensorReader) checkThreshold(ctx context.Context, start string) (
-	map[domain.TemperatureMeta]domain.TemperatureOver,
-	map[domain.HumidityMeta]domain.HumidityOver,
-	map[domain.CarbonDioxideOver]domain.CarbonDioxideOver,
+	[]domain.TemperatureOver,
+	[]domain.HumidityOver,
+	[]domain.CarbonDioxideOver,
 	error,
 ) {
 	defaultThreshold := domain.DefaultAirSensorThreshold()
@@ -78,9 +79,9 @@ func (e *airSensorReader) checkThreshold(ctx context.Context, start string) (
 		return nil, nil, nil, err
 	}
 
-	to := make(map[domain.TemperatureMeta]domain.TemperatureOver)
-	ho := make(map[domain.HumidityMeta]domain.HumidityOver)
-	co := make(map[domain.CarbonDioxideOver]domain.CarbonDioxideOver)
+	to := make(map[domain.TemperatureMeta]float64)
+	ho := make(map[domain.HumidityMeta]float64)
+	co := make(map[domain.CarbonDioxideMeta]float64)
 	for result.Next() {
 		if result.TableChanged() {
 			fmt.Printf("table: %s\n", result.TableMetadata().String())
@@ -89,40 +90,76 @@ func (e *airSensorReader) checkThreshold(ctx context.Context, start string) (
 
 		if r.Field() == "temperature" {
 			t := domain.TemperatureMeta{
-				Room:        r.ValueByKey("room").(string),
-				Temperature: r.Value().(float64),
+				Room: r.ValueByKey("room").(string),
+				TS:   r.Time(),
 			}
-			to[t] = domain.TemperatureOver{
-				Room:        r.ValueByKey("room").(string),
-				Temperature: r.Value().(float64),
-				TS:          r.Time(),
-			}
+			to[t] = r.Value().(float64)
 		}
 		if r.Field() == "humidity" {
 			h := domain.HumidityMeta{
-				Room:     r.ValueByKey("room").(string),
-				Humidity: r.Value().(float64),
+				Room: r.ValueByKey("room").(string),
+				TS:   r.Time(),
 			}
-			ho[h] = domain.HumidityOver{
-				Room:     r.ValueByKey("room").(string),
-				Humidity: r.Value().(float64),
-				TS:       r.Time(),
-			}
+			ho[h] = r.Value().(float64)
 		}
 		if r.Field() == "co2" {
-			c := domain.CarbonDioxideOver{
-				Room:          r.ValueByKey("room").(string),
-				CarbonDioxide: r.Value().(float64),
-				TS:            r.Time(),
+			c := domain.CarbonDioxideMeta{
+				Room: r.ValueByKey("room").(string),
+				TS:   r.Time(),
 			}
-			co[c] = c
+			co[c] = r.Value().(float64)
 		}
 	}
 	if result.Err() != nil {
 		return nil, nil, nil, result.Err()
 	}
 
-	return to, ho, co, nil
+	temperatureOvers := make([]domain.TemperatureOver, 0, len(to))
+	for k, v := range to {
+		temperatureOvers = append(temperatureOvers, domain.TemperatureOver{
+			Room:        k.Room,
+			TS:          k.TS,
+			Temperature: v,
+		})
+	}
+	sort.Slice(temperatureOvers, func(i, j int) bool {
+		if temperatureOvers[i].Room == temperatureOvers[j].Room {
+			return temperatureOvers[i].TS.Before(temperatureOvers[j].TS)
+		}
+		return temperatureOvers[i].Room < temperatureOvers[j].Room
+	})
+
+	humidityOvers := make([]domain.HumidityOver, 0, len(ho))
+	for k, v := range ho {
+		humidityOvers = append(humidityOvers, domain.HumidityOver{
+			Room:     k.Room,
+			TS:       k.TS,
+			Humidity: v,
+		})
+	}
+	sort.Slice(humidityOvers, func(i, j int) bool {
+		if humidityOvers[i].Room == humidityOvers[j].Room {
+			return humidityOvers[i].TS.Before(humidityOvers[j].TS)
+		}
+		return humidityOvers[i].Room < humidityOvers[j].Room
+	})
+
+	co2Overs := make([]domain.CarbonDioxideOver, 0, len(co))
+	for k, v := range co {
+		co2Overs = append(co2Overs, domain.CarbonDioxideOver{
+			Room:          k.Room,
+			TS:            k.TS,
+			CarbonDioxide: v,
+		})
+	}
+	sort.Slice(co2Overs, func(i, j int) bool {
+		if co2Overs[i].Room == co2Overs[j].Room {
+			return co2Overs[i].TS.Before(co2Overs[j].TS)
+		}
+		return co2Overs[i].Room < co2Overs[j].Room
+	})
+
+	return temperatureOvers, humidityOvers, co2Overs, nil
 }
 
 func (e *airSensorReader) Get3HourAgoDataPoints(ctx context.Context) (*api.QueryTableResult, error) {

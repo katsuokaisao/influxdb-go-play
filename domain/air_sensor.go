@@ -26,8 +26,8 @@ type TemperatureOver struct {
 }
 
 type TemperatureMeta struct {
-	Room        string
-	Temperature float64
+	Room string
+	TS   time.Time
 }
 
 func (t *TemperatureOver) String() string {
@@ -45,8 +45,8 @@ func (h *HumidityOver) String() string {
 }
 
 type HumidityMeta struct {
-	Room     string
-	Humidity float64
+	Room string
+	TS   time.Time
 }
 
 type CarbonDioxideOver struct {
@@ -60,8 +60,8 @@ func (c *CarbonDioxideOver) String() string {
 }
 
 type CarbonDioxideMeta struct {
-	Room          string
-	CarbonDioxide float64
+	Room string
+	TS   time.Time
 }
 
 func ParseInfluxDBLineToAirSensor(line string) (AirSensor, error) {
@@ -201,9 +201,9 @@ type AirSensorWriterBlocking interface {
 
 type AirSensorReader interface {
 	CheckThreshold10MinutesAgo(ctx context.Context) (
-		map[TemperatureMeta]TemperatureOver,
-		map[HumidityMeta]HumidityOver,
-		map[CarbonDioxideOver]CarbonDioxideOver,
+		[]TemperatureOver,
+		[]HumidityOver,
+		[]CarbonDioxideOver,
 		error,
 	)
 	Get3HourAgoDataPoints(ctx context.Context) (*api.QueryTableResult, error)
