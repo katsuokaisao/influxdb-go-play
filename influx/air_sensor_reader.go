@@ -79,9 +79,9 @@ func (e *airSensorReader) checkThreshold(ctx context.Context, start string) (
 		return nil, nil, nil, err
 	}
 
-	to := make(map[domain.TemperatureMeta]float64)
-	ho := make(map[domain.HumidityMeta]float64)
-	co := make(map[domain.CarbonDioxideMeta]float64)
+	to := make(map[domain.AirSensorMeta]float64)
+	ho := make(map[domain.AirSensorMeta]float64)
+	co := make(map[domain.AirSensorMeta]float64)
 	for result.Next() {
 		if result.TableChanged() {
 			fmt.Printf("table: %s\n", result.TableMetadata().String())
@@ -89,21 +89,21 @@ func (e *airSensorReader) checkThreshold(ctx context.Context, start string) (
 		r := result.Record()
 
 		if r.Field() == "temperature" {
-			t := domain.TemperatureMeta{
+			t := domain.AirSensorMeta{
 				Room: r.ValueByKey("room").(string),
 				TS:   r.Time(),
 			}
 			to[t] = r.Value().(float64)
 		}
 		if r.Field() == "humidity" {
-			h := domain.HumidityMeta{
+			h := domain.AirSensorMeta{
 				Room: r.ValueByKey("room").(string),
 				TS:   r.Time(),
 			}
 			ho[h] = r.Value().(float64)
 		}
 		if r.Field() == "co2" {
-			c := domain.CarbonDioxideMeta{
+			c := domain.AirSensorMeta{
 				Room: r.ValueByKey("room").(string),
 				TS:   r.Time(),
 			}
@@ -199,7 +199,7 @@ func (e *airSensorReader) GetDailyAggregates(ctx context.Context) (*api.QueryTab
 		from(bucket: "%s")
 			|> range(start: -1d)
 			|> filter(fn: (r) => r._measurement == "%s")
-			|> aggregateWindow(every: 1d, fn: mean, createEmpty: false)
+			|> aggregateWindow(every: 1h, fn: mean, createEmpty: false)
 	`, params.Bucket, params.Meas)
 
 	return e.cli.Query(ctx, query)
