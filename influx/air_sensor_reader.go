@@ -202,7 +202,7 @@ func (e *airSensorReader) getDataPoints(ctx context.Context, duration string) ([
 	return airSensorsSlice, nil
 }
 
-func (e *airSensorReader) GetDailyAggregates(ctx context.Context) (*api.QueryTableResult, error) {
+func (e *airSensorReader) GetDailyAggregates(ctx context.Context) ([]domain.AirSensor, error) {
 	params := struct {
 		Bucket string `json:"bucket"`
 		Meas   string `json:"meas"`
@@ -218,5 +218,66 @@ func (e *airSensorReader) GetDailyAggregates(ctx context.Context) (*api.QueryTab
 			|> aggregateWindow(every: 1h, fn: mean, createEmpty: false)
 	`, params.Bucket, params.Meas)
 
-	return e.cli.Query(ctx, query)
+	result, err := e.cli.Query(ctx, query)
+	if err != nil {
+		return nil, err
+	}
+
+	airSensors := make(map[domain.AirSensorMeta]domain.AirSensor)
+	for result.Next() {
+		r := result.Record()
+		meta := domain.AirSensorMeta{
+			Room: r.ValueByKey("room").(string),
+			TS:   r.Time(),
+		}
+		if _, ok := airSensors[meta]; !ok {
+			airSensors[meta] = domain.AirSensor{
+				Room: meta.Room,
+				TS:   meta.TS,
+			}
+		}
+		switch r.Field() {
+		case "temp":
+			airSensors[meta] = domain.AirSensor{
+				Room:          meta.Room,
+				TS:            meta.TS,
+				Temperature:   r.Value().(float64),
+				Humidity:      airSensors[meta].Humidity,
+				CarbonDioxide: airSensors[meta].CarbonDioxide,
+			}
+		case "hum":
+			airSensors[meta] = domain.AirSensor{
+				Room:          meta.Room,
+				TS:            meta.TS,
+				Temperature:   airSensors[meta].Temperature,
+				Humidity:      r.Value().(float64),
+				CarbonDioxide: airSensors[meta].CarbonDioxide,
+			}
+		case "co2":
+			airSensors[meta] = domain.AirSensor{
+				Room:          meta.Room,
+				TS:            meta.TS,
+				Temperature:   airSensors[meta].Temperature,
+				Humidity:      airSensors[meta].Humidity,
+				CarbonDioxide: r.Value().(float64),
+			}
+		}
+	}
+
+	if result.Err() != nil {
+		return nil, result.Err()
+	}
+
+	airSensorsSlice := make([]domain.AirSensor, 0, len(airSensors))
+	for _, v := range airSensors {
+		airSensorsSlice = append(airSensorsSlice, v)
+	}
+	sort.Slice(airSensorsSlice, func(i, j int) bool {
+		if airSensorsSlice[i].Room == airSensorsSlice[j].Room {
+			return airSensorsSlice[i].TS.Before(airSensorsSlice[j].TS)
+		}
+		return airSensorsSlice[i].Room < airSensorsSlice[j].Room
+	})
+
+	return airSensorsSlice, nil
 }
