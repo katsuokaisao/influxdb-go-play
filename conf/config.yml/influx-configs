@@ -1,0 +1,25 @@
+[default]
+  url = "http://localhost:8086"
+  token = "ZSPdYayXzQXc5Q_cXBoEQQcs1ZTMug4jw1SLHizmIdiOG7dHO9otOk-Z9VkaSceiK3kfDDD0bR91-ueLBFZo9g=="
+  org = "example-org"
+  active = true
+
+[get-started]
+  url = "http://localhost:8086"
+  token = "V4IGJV93ZH_4tpI09i12C5GFQ6iG1-_6qAwMIcLDXDeYIEJ_h2yU812M6DVg32LVUJIlR8B7bJHya2E6jDLG1w=="
+  org = "example-org"
+# 
+# [eu-central]
+#   url = "https://eu-central-1-1.aws.cloud2.influxdata.com"
+#   token = "XXX"
+#   org = ""
+# 
+# [us-central]
+#   url = "https://us-central1-1.gcp.cloud2.influxdata.com"
+#   token = "XXX"
+#   org = ""
+# 
+# [us-west]
+#   url = "https://us-west-2-1.aws.cloud2.influxdata.com"
+#   token = "XXX"
+#   org = ""
