@@ -13,8 +13,8 @@ func init() {
 	rootCmd.AddCommand(writeBlockCmd)
 	rootCmd.AddCommand(checkThreshold10MinutesAgoCmd)
 
-	writeCmd.PersistentFlags().StringVarP(&fileName, "file", "f", "data.txt", "write data from this file")
-	writeBlockCmd.PersistentFlags().StringVarP(&fileName, "file", "f", "data.txt", "write data from this file")
+	writeCmd.PersistentFlags().StringVarP(&fileName, "file", "f", "", "write data from this file")
+	writeBlockCmd.PersistentFlags().StringVarP(&fileName, "file", "f", "", "write data from this file")
 }
 
 var rootCmd = &cobra.Command{
