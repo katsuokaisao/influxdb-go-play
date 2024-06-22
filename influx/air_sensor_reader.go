@@ -3,7 +3,6 @@ package influx
 import (
 	"context"
 	"fmt"
-	"sort"
 
 	"github.com/influxdata/influxdb-client-go/v2/api"
 	"github.com/katsuokaisao/influxdb-play/domain"
@@ -70,6 +69,7 @@ func (e *airSensorReader) checkThreshold(ctx context.Context, start string) (
 			|> filter(fn: (r) => (r._field == "temp" and (r._value < %f or r._value > %f)) or
 								(r._field == "hum" and (r._value < %f or r._value > %f)) or
 								(r._field == "co2" and r._value > %f))
+			|> sort(columns: ["room", "_time"], desc: false)
 			|> yield(name: "exceeded_thresholds")
 	`, params.Bucket, params.Start, params.Meas, params.TemperatureMin, params.TemperatureMax, params.HumidityMin, params.HumidityMax, params.Co2Max)
 	fmt.Printf("query: %s\n", query)
@@ -112,27 +112,6 @@ func (e *airSensorReader) checkThreshold(ctx context.Context, start string) (
 	if result.Err() != nil {
 		return nil, nil, nil, result.Err()
 	}
-
-	sort.Slice(temperatureOvers, func(i, j int) bool {
-		if temperatureOvers[i].Room == temperatureOvers[j].Room {
-			return temperatureOvers[i].TS.Before(temperatureOvers[j].TS)
-		}
-		return temperatureOvers[i].Room < temperatureOvers[j].Room
-	})
-
-	sort.Slice(humidityOvers, func(i, j int) bool {
-		if humidityOvers[i].Room == humidityOvers[j].Room {
-			return humidityOvers[i].TS.Before(humidityOvers[j].TS)
-		}
-		return humidityOvers[i].Room < humidityOvers[j].Room
-	})
-
-	sort.Slice(co2Overs, func(i, j int) bool {
-		if co2Overs[i].Room == co2Overs[j].Room {
-			return co2Overs[i].TS.Before(co2Overs[j].TS)
-		}
-		return co2Overs[i].Room < co2Overs[j].Room
-	})
 
 	return temperatureOvers, humidityOvers, co2Overs, nil
 }
