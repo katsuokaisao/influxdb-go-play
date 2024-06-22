@@ -185,8 +185,7 @@ type AirSensorWriter interface {
 type AirSensorWriterBlocking interface {
 	WriteRecord(ctx context.Context, line string) error
 	WritePoint(ctx context.Context, a *AirSensor) error
-	Flush(ctx context.Context) error
-	EnableBatching()
+	WritePoints(ctx context.Context, points []AirSensor) error
 }
 
 type AirSensorReader interface {

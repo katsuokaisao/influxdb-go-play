@@ -43,8 +43,17 @@ func (e *airSensorWriterBlocking) WritePoint(ctx context.Context, a *domain.AirS
 	return e.cli.WritePoint(ctx, p)
 }
 
-func (e *airSensorWriterBlocking) EnableBatching() {
+func (e *airSensorWriterBlocking) WritePoints(ctx context.Context, airSensors []domain.AirSensor) error {
 	e.cli.EnableBatching()
+
+	points := make([]*write.Point, 0, len(airSensors))
+	for _, a := range airSensors {
+		p := e.toPoint(&a)
+		points = append(points, p)
+	}
+	defer e.cli.Flush(ctx)
+
+	return e.cli.WritePoint(ctx, points...)
 }
 
 func (e *airSensorWriterBlocking) Flush(ctx context.Context) error {
