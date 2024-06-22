@@ -200,7 +200,12 @@ type AirSensorWriterBlocking interface {
 }
 
 type AirSensorReader interface {
-	CheckThreshold10MinutesAgo(ctx context.Context) (*api.QueryTableResult, error)
+	CheckThreshold10MinutesAgo(ctx context.Context) (
+		map[TemperatureMeta]TemperatureOver,
+		map[HumidityMeta]HumidityOver,
+		map[CarbonDioxideOver]CarbonDioxideOver,
+		error,
+	)
 	Get3HourAgoDataPoints(ctx context.Context) (*api.QueryTableResult, error)
 	GetDailyAggregates(ctx context.Context) (*api.QueryTableResult, error)
 }

@@ -26,11 +26,21 @@ func NewAirSensorReader(
 	}
 }
 
-func (e *airSensorReader) CheckThreshold10MinutesAgo(ctx context.Context) (*api.QueryTableResult, error) {
+func (e *airSensorReader) CheckThreshold10MinutesAgo(ctx context.Context) (
+	map[domain.TemperatureMeta]domain.TemperatureOver,
+	map[domain.HumidityMeta]domain.HumidityOver,
+	map[domain.CarbonDioxideOver]domain.CarbonDioxideOver,
+	error,
+) {
 	return e.checkThreshold(ctx, "-10m")
 }
 
-func (e *airSensorReader) checkThreshold(ctx context.Context, start string) (*api.QueryTableResult, error) {
+func (e *airSensorReader) checkThreshold(ctx context.Context, start string) (
+	map[domain.TemperatureMeta]domain.TemperatureOver,
+	map[domain.HumidityMeta]domain.HumidityOver,
+	map[domain.CarbonDioxideOver]domain.CarbonDioxideOver,
+	error,
+) {
 	defaultThreshold := domain.DefaultAirSensorThreshold()
 	params := struct {
 		Bucket         string  `json:"bucket"`
@@ -63,7 +73,56 @@ func (e *airSensorReader) checkThreshold(ctx context.Context, start string) (*ap
 	`, params.Bucket, params.Start, params.Meas, params.TemperatureMin, params.TemperatureMax, params.HumidityMin, params.HumidityMax, params.Co2Max)
 	fmt.Printf("query: %s\n", query)
 
-	return e.cli.QueryWithParams(ctx, query, params)
+	result, err := e.cli.Query(ctx, query)
+	if err != nil {
+		return nil, nil, nil, err
+	}
+
+	to := make(map[domain.TemperatureMeta]domain.TemperatureOver)
+	ho := make(map[domain.HumidityMeta]domain.HumidityOver)
+	co := make(map[domain.CarbonDioxideOver]domain.CarbonDioxideOver)
+	for result.Next() {
+		if result.TableChanged() {
+			fmt.Printf("table: %s\n", result.TableMetadata().String())
+		}
+		r := result.Record()
+
+		if r.Field() == "temperature" {
+			t := domain.TemperatureMeta{
+				Room:        r.ValueByKey("room").(string),
+				Temperature: r.Value().(float64),
+			}
+			to[t] = domain.TemperatureOver{
+				Room:        r.ValueByKey("room").(string),
+				Temperature: r.Value().(float64),
+				TS:          r.Time(),
+			}
+		}
+		if r.Field() == "humidity" {
+			h := domain.HumidityMeta{
+				Room:     r.ValueByKey("room").(string),
+				Humidity: r.Value().(float64),
+			}
+			ho[h] = domain.HumidityOver{
+				Room:     r.ValueByKey("room").(string),
+				Humidity: r.Value().(float64),
+				TS:       r.Time(),
+			}
+		}
+		if r.Field() == "co2" {
+			c := domain.CarbonDioxideOver{
+				Room:          r.ValueByKey("room").(string),
+				CarbonDioxide: r.Value().(float64),
+				TS:            r.Time(),
+			}
+			co[c] = c
+		}
+	}
+	if result.Err() != nil {
+		return nil, nil, nil, result.Err()
+	}
+
+	return to, ho, co, nil
 }
 
 func (e *airSensorReader) Get3HourAgoDataPoints(ctx context.Context) (*api.QueryTableResult, error) {

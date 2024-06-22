@@ -28,7 +28,7 @@ var writeCmd = &cobra.Command{
 
 		fn := fileName
 		if fn == "" {
-			fn = "data.txt"
+			fn = "data_normal.txt"
 		}
 		file, err := os.Open(fn)
 		if err != nil {
