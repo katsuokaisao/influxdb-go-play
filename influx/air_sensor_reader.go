@@ -79,49 +79,40 @@ func (e *airSensorReader) checkThreshold(ctx context.Context, start string) (
 		return nil, nil, nil, err
 	}
 
-	to := make(map[domain.AirSensorMeta]float64)
-	ho := make(map[domain.AirSensorMeta]float64)
-	co := make(map[domain.AirSensorMeta]float64)
+	temperatureOvers := make([]domain.TemperatureOver, 0, 1024)
+	humidityOvers := make([]domain.HumidityOver, 0, 1024)
+	co2Overs := make([]domain.CarbonDioxideOver, 0, 1024)
 	for result.Next() {
-		if result.TableChanged() {
-			fmt.Printf("table: %s\n", result.TableMetadata().String())
-		}
 		r := result.Record()
-
 		if r.Field() == "temperature" {
-			t := domain.AirSensorMeta{
-				Room: r.ValueByKey("room").(string),
-				TS:   r.Time(),
+			t := domain.TemperatureOver{
+				Room:        r.ValueByKey("room").(string),
+				Temperature: r.Value().(float64),
+				TS:          r.Time(),
 			}
-			to[t] = r.Value().(float64)
+			temperatureOvers = append(temperatureOvers, t)
 		}
 		if r.Field() == "humidity" {
-			h := domain.AirSensorMeta{
-				Room: r.ValueByKey("room").(string),
-				TS:   r.Time(),
+			h := domain.HumidityOver{
+				Room:     r.ValueByKey("room").(string),
+				Humidity: r.Value().(float64),
+				TS:       r.Time(),
 			}
-			ho[h] = r.Value().(float64)
+			humidityOvers = append(humidityOvers, h)
 		}
 		if r.Field() == "co2" {
-			c := domain.AirSensorMeta{
-				Room: r.ValueByKey("room").(string),
-				TS:   r.Time(),
+			c := domain.CarbonDioxideOver{
+				Room:          r.ValueByKey("room").(string),
+				CarbonDioxide: r.Value().(float64),
+				TS:            r.Time(),
 			}
-			co[c] = r.Value().(float64)
+			co2Overs = append(co2Overs, c)
 		}
 	}
 	if result.Err() != nil {
 		return nil, nil, nil, result.Err()
 	}
 
-	temperatureOvers := make([]domain.TemperatureOver, 0, len(to))
-	for k, v := range to {
-		temperatureOvers = append(temperatureOvers, domain.TemperatureOver{
-			Room:        k.Room,
-			TS:          k.TS,
-			Temperature: v,
-		})
-	}
 	sort.Slice(temperatureOvers, func(i, j int) bool {
 		if temperatureOvers[i].Room == temperatureOvers[j].Room {
 			return temperatureOvers[i].TS.Before(temperatureOvers[j].TS)
@@ -129,14 +120,6 @@ func (e *airSensorReader) checkThreshold(ctx context.Context, start string) (
 		return temperatureOvers[i].Room < temperatureOvers[j].Room
 	})
 
-	humidityOvers := make([]domain.HumidityOver, 0, len(ho))
-	for k, v := range ho {
-		humidityOvers = append(humidityOvers, domain.HumidityOver{
-			Room:     k.Room,
-			TS:       k.TS,
-			Humidity: v,
-		})
-	}
 	sort.Slice(humidityOvers, func(i, j int) bool {
 		if humidityOvers[i].Room == humidityOvers[j].Room {
 			return humidityOvers[i].TS.Before(humidityOvers[j].TS)
@@ -144,14 +127,6 @@ func (e *airSensorReader) checkThreshold(ctx context.Context, start string) (
 		return humidityOvers[i].Room < humidityOvers[j].Room
 	})
 
-	co2Overs := make([]domain.CarbonDioxideOver, 0, len(co))
-	for k, v := range co {
-		co2Overs = append(co2Overs, domain.CarbonDioxideOver{
-			Room:          k.Room,
-			TS:            k.TS,
-			CarbonDioxide: v,
-		})
-	}
 	sort.Slice(co2Overs, func(i, j int) bool {
 		if co2Overs[i].Room == co2Overs[j].Room {
 			return co2Overs[i].TS.Before(co2Overs[j].TS)
