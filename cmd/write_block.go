@@ -14,7 +14,7 @@ import (
 )
 
 var writeBlockCmd = &cobra.Command{
-	Use:   "write_block",
+	Use:   "writeBlock",
 	Short: "Write a new data to InfluxDB using the WriteAPI with the WriteBlock method",
 	Run: func(cmd *cobra.Command, args []string) {
 		bucket := "get-started"

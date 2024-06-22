@@ -12,7 +12,7 @@ import (
 )
 
 var checkThreshold10MinutesAgoCmd = &cobra.Command{
-	Use:   "CheckThreshold10MinutesAgo",
+	Use:   "checkThreshold10MinutesAgo",
 	Short: "Check the threshold 10 minutes ago",
 	Run: func(cmd *cobra.Command, args []string) {
 		bucket := "get-started"

@@ -11,7 +11,7 @@ var (
 func init() {
 	rootCmd.AddCommand(writeCmd)
 	rootCmd.AddCommand(writeBlockCmd)
-	rootCmd.AddCommand(readCmd)
+	rootCmd.AddCommand(checkThreshold10MinutesAgoCmd)
 
 	writeCmd.PersistentFlags().StringVarP(&fileName, "file", "f", "data.txt", "write data from this file")
 	writeBlockCmd.PersistentFlags().StringVarP(&fileName, "file", "f", "data.txt", "write data from this file")
