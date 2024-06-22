@@ -27,7 +27,11 @@ var writeBlockCmd = &cobra.Command{
 		w := client.WriteAPIBlocking(org, bucket)
 		asw := influx.NewAirSensorWriterBlocking(w, "home")
 
-		file, err := os.Open("data.txt")
+		fn := fileName
+		if fn == "" {
+			fn = "data.txt"
+		}
+		file, err := os.Open(fn)
 		if err != nil {
 			fmt.Println("Error opening file:", err)
 			return

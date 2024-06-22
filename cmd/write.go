@@ -26,7 +26,11 @@ var writeCmd = &cobra.Command{
 		w := client.WriteAPI(org, bucket)
 		asw := influx.NewAirSensorWriter(w, "home")
 
-		file, err := os.Open("data.txt")
+		fn := fileName
+		if fn == "" {
+			fn = "data.txt"
+		}
+		file, err := os.Open(fn)
 		if err != nil {
 			fmt.Println("Error opening file:", err)
 			return

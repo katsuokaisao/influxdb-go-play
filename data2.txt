@@ -1,0 +1,26 @@
+home,room=Living\ Room temp=24.0,hum=45.0,co=500i 1641024000
+home,room=Kitchen temp=25.0,hum=50.0,co=600i 1641024000
+home,room=Living\ Room temp=23.0,hum=55.0,co=700i 1641027600
+home,room=Kitchen temp=26.0,hum=52.0,co=800i 1641027600
+home,room=Living\ Room temp=22.0,hum=53.0,co=900i 1641031200
+home,room=Kitchen temp=24.5,hum=51.0,co=1000i 1641031200
+home,room=Living\ Room temp=21.5,hum=50.0,co=1100i 1641034800
+home,room=Kitchen temp=25.5,hum=48.0,co=1200i 1641034800
+home,room=Living\ Room temp=21.0,hum=47.0,co=1300i 1641038400
+home,room=Kitchen temp=26.0,hum=45.0,co=1400i 1641038400
+home,room=Living\ Room temp=20.5,hum=42.0,co=1500i 1641042000
+home,room=Kitchen temp=27.0,hum=40.0,co=1600i 1641042000
+home,room=Living\ Room temp=20.0,hum=39.0,co=1700i 1641045600
+home,room=Kitchen temp=28.0,hum=38.0,co=1800i 1641045600
+home,room=Living\ Room temp=19.5,hum=37.0,co=1900i 1641049200
+home,room=Kitchen temp=29.0,hum=36.0,co=2000i 1641049200
+home,room=Living\ Room temp=19.0,hum=35.0,co=2100i 1641052800
+home,room=Kitchen temp=30.0,hum=34.0,co=2200i 1641052800
+home,room=Living\ Room temp=18.5,hum=33.0,co=2300i 1641056400
+home,room=Kitchen temp=31.0,hum=32.0,co=2400i 1641056400
+home,room=Living\ Room temp=18.0,hum=31.0,co=2500i 1641060000
+home,room=Kitchen temp=32.0,hum=30.0,co=2600i 1641060000
+home,room=Living\ Room temp=17.5,hum=29.0,co=2700i 1641063600
+home,room=Kitchen temp=33.0,hum=28.0,co=2800i 1641063600
+home,room=Living\ Room temp=17.0,hum=27.0,co=2900i 1641067200
+home,room=Kitchen temp=34.0,hum=26.0,co=3000i 1641067200

@@ -22,7 +22,7 @@ func NewAirSensorReader(
 	return &airSensorReader{
 		cli:    cli,
 		bucket: bucket,
-		meas:   "airSensors",
+		meas:   meas,
 	}
 }
 

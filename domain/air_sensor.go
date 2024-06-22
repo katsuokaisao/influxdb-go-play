@@ -19,6 +19,51 @@ type AirSensor struct {
 	TS            time.Time
 }
 
+type TemperatureOver struct {
+	Room        string
+	Temperature float64
+	TS          time.Time
+}
+
+type TemperatureMeta struct {
+	Room        string
+	Temperature float64
+}
+
+func (t *TemperatureOver) String() string {
+	return fmt.Sprintf("Room: %s, Temperature: %f, TS: %s", t.Room, t.Temperature, t.TS)
+}
+
+type HumidityOver struct {
+	Room     string
+	Humidity float64
+	TS       time.Time
+}
+
+func (h *HumidityOver) String() string {
+	return fmt.Sprintf("Room: %s, Humidity: %f, TS: %s", h.Room, h.Humidity, h.TS)
+}
+
+type HumidityMeta struct {
+	Room     string
+	Humidity float64
+}
+
+type CarbonDioxideOver struct {
+	Room          string
+	CarbonDioxide float64
+	TS            time.Time
+}
+
+func (c *CarbonDioxideOver) String() string {
+	return fmt.Sprintf("Room: %s, CarbonDioxide: %f, TS: %s", c.Room, c.CarbonDioxide, c.TS)
+}
+
+type CarbonDioxideMeta struct {
+	Room          string
+	CarbonDioxide float64
+}
+
 func ParseInfluxDBLineToAirSensor(line string) (AirSensor, error) {
 	parts := splitInfluxDBLine(line)
 	if len(parts) != 3 {
