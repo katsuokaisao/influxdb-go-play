@@ -7,6 +7,7 @@ import (
 func init() {
 	rootCmd.AddCommand(writeCmd)
 	rootCmd.AddCommand(writeBlockCmd)
+	rootCmd.AddCommand(readCmd)
 }
 
 var rootCmd = &cobra.Command{
